@@ -2,6 +2,7 @@ import { Heerich } from "../src/heerich.js";
 import { version } from "../package.json";
 import { initHero } from "./hero.js";
 import { highlight } from "https://esm.sh/sugar-high";
+import "./regression-panel.js";
 
 document.querySelectorAll("pre code").forEach((el) => {
   el.innerHTML = highlight(el.textContent);

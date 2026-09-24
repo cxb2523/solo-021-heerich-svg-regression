@@ -253,6 +253,7 @@
             <li><a href="#find-by-position">Position queries</a></li>
             <li><a href="#animation">Animation</a></li>
             <li><a href="#combined">Putting it all together</a></li>
+            <li><a href="#regression">Regression reference</a></li>
             <li><a href="#gallery">After Heerich</a></li>
             <li><a href="#support">Credits</a></li>
           </ol>
@@ -1464,6 +1465,22 @@ function frame(now) {
 
       <div class="combined-canvas" id="demo-combined">
         <div class="demo-canvas"></div>
+      </div>
+
+      <!-- ─── Regression reference panel ─────────────────── -->
+
+      <div class="section-full" id="regression">
+        <h2>Regression reference</h2>
+        <p>
+          The three preset scenes and two cameras below are the exact fixtures
+          pinned by the Node regression suite. Switching either control rebuilds
+          the engine from scratch and re-times a cold frame; the table lists the
+          face draw order and projected coordinates derived from the projection
+          equations, with a live row-by-row comparison against what the renderer
+          actually produced. A geometry change that moves a single vertex shows
+          up here immediately as a ✗.
+        </p>
+        <div class="regression-panel" id="regression-panel"></div>
       </div>
 
       <!-- ─── 12. Heerich Gallery ───────────────────────── -->

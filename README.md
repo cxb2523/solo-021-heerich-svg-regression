@@ -869,6 +869,31 @@ const h2 = Heerich.fromJSON(JSON.parse(json))
 
 Note: functional styles (callbacks) cannot be serialized and will be omitted with a console warning.
 
+## Testing
+
+Geometry regressions are covered by a [node:test](https://nodejs.org/api/test.html) suite — no extra dependencies, runs on the built-in test runner (Node 20+):
+
+```bash
+npm test
+# or directly:
+node --test tests/svg-regression.test.js
+```
+
+The tests only use the public API (`new Heerich()`, `addGeometry()`, `getFaces()`, `setCamera()`, `toSVG()`); they never reach into projection or sorting internals, and the renderer was not modified to make it testable. What is pinned:
+
+- per-face projected coordinates and the exact back-to-front draw order for three preset scenes (single voxel, a two-voxel depth row, and a three-voxel L corner);
+- byte-identical SVG output for repeated renders and independently rebuilt instances;
+- the visible face set when switching the same scene between an oblique 315° and an isometric 45° camera — including *why* each face shows or hides (oblique direction culling vs. isometric back-face dot products);
+- the empty-scene and single-voxel boundaries.
+
+Expected coordinates were derived from the projection equations, not captured from a run, and every value carries its derivation in a comment. The fixtures live in [`tests/regression-fixtures.js`](tests/regression-fixtures.js) and are reused by the **Regression reference** section of the docs page (`npm run dev`, then browse to it): it offers the same three scenes and two cameras, reports live face/path counts and cold-frame timing, and compares each drawn face against the frozen table row by row.
+
+The historic performance benchmarks are still available separately:
+
+```bash
+npm run bench
+```
+
 ## Coordinate System
 
 - **X** — horizontal (left/right)
