@@ -1,0 +1,52 @@
+{
+  "name": "heerich",
+  "version": "0.16.0",
+  "description": "A tiny engine for 3D voxel scenes rendered to SVG",
+  "type": "module",
+  "main": "./dist/heerich.umd.cjs",
+  "module": "./dist/heerich.js",
+  "types": "./dist/heerich.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/heerich.d.ts",
+      "import": "./dist/heerich.js",
+      "require": "./dist/heerich.umd.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "src/heerich.js"
+  ],
+  "scripts": {
+    "dev": "vite site --host",
+    "build": "vite build && tsc",
+    "build:site": "vite build --config site/vite.config.js",
+    "preview": "vite preview site",
+    "test": "npm run bench",
+    "bench": "node tests/benches.js",
+    "format": "prettier --write \"src/**/*.js\" \"site/**/*.js\" \"site/**/*.css\" \"site/**/*.html\"",
+    "format:check": "prettier --check \"src/**/*.js\" \"site/**/*.js\" \"site/**/*.css\" \"site/**/*.html\""
+  },
+  "keywords": [
+    "voxel",
+    "svg",
+    "3d",
+    "isometric",
+    "oblique",
+    "perspective",
+    "generative"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meodai/heerich.git"
+  },
+  "bugs": "https://github.com/meodai/heerich/issues",
+  "homepage": "https://meodai.github.io/heerich/",
+  "author": "meodai",
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "^3.8.1",
+    "typescript": "^6.0.2",
+    "vite": "^8.0.1"
+  }
+}

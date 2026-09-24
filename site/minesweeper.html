@@ -1,0 +1,856 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Heerichsweeper</title>
+    <meta
+      name="description"
+      content="3D voxel minesweeper built with heerich.js"
+    />
+    <meta property="og:title" content="Heerichsweeper" />
+    <meta
+      property="og:description"
+      content="3D voxel minesweeper built with heerich.js"
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:image"
+      content="https://meodai.github.io/heerich/social.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="683" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Heerichsweeper" />
+    <meta
+      name="twitter:description"
+      content="3D voxel minesweeper built with heerich.js"
+    />
+    <meta
+      name="twitter:image"
+      content="https://meodai.github.io/heerich/social.png"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Aboreto&family=Work+Sans:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #fbf4ea;
+        --text: #0e0e0e;
+        --line: var(--text);
+        --selection-bg: var(--text);
+        --selection-text: var(--bg);
+        --fill: #fbf4ea;
+        --stroke-c: #18191b;
+        --stroke-w: 0.5;
+        --bomb-red: #c0392b;
+        --flag-gold: #d4a017;
+        --num-1: #2563eb;
+        --num-2: #16a34a;
+        --num-3: #dc2626;
+        --num-4: #7c3aed;
+        --num-5: #ea580c;
+        --num-6: #0891b2;
+        --num-7: #4b5563;
+        --num-8: #1e293b;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0e0e0e;
+          --text: #fbf4ea;
+          --line: color-mix(in oklab, var(--text) 12%, var(--bg));
+          --fill: #0e0e0e;
+          --stroke-c: #fbf4ea;
+          --stroke-w: 0.5;
+          --bomb-red: #e74c3c;
+          --flag-gold: #f0c040;
+          --num-1: #60a5fa;
+          --num-2: #4ade80;
+          --num-3: #f87171;
+          --num-4: #a78bfa;
+          --num-5: #fb923c;
+          --num-6: #22d3ee;
+          --num-7: #9ca3af;
+          --num-8: #e2e8f0;
+        }
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      ::selection {
+        background: var(--selection-bg);
+        color: var(--selection-text);
+      }
+
+      html {
+        font-size: calc(0.5rem + 0.45vw);
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: "Work Sans", sans-serif;
+        font-weight: 300;
+        color: var(--text);
+        background: var(--bg);
+        line-height: 1.65;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 2rem;
+        user-select: none;
+      }
+
+      h1 {
+        font-family: "Aboreto", cursive;
+        font-weight: 400;
+        font-size: 3rem;
+        letter-spacing: -0.05em;
+        margin-bottom: 0.5rem;
+      }
+
+      h1 small {
+        display: block;
+        font-size: 1rem;
+        font-family: "Work Sans", sans-serif;
+        font-weight: 300;
+        letter-spacing: 0;
+        opacity: 0.6;
+      }
+
+      .game-container {
+        width: min(90vw, 90vh, 700px);
+        aspect-ratio: 1;
+        cursor: pointer;
+      }
+
+      .game-container svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .hud {
+        display: flex;
+        gap: 3rem;
+        align-items: center;
+        margin: 1.5rem 0;
+        font-family: "Aboreto", cursive;
+        font-size: 1.4rem;
+      }
+
+      .hud span {
+        opacity: 0.7;
+        font-family: "Work Sans", sans-serif;
+        font-size: 0.9rem;
+        font-weight: 300;
+        margin-right: 0.3rem;
+      }
+
+      .controls {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+
+      button {
+        font-family: "Aboreto", cursive;
+        font-size: 1rem;
+        padding: 0.5em 1.5em;
+        background: var(--text);
+        color: var(--bg);
+        border: none;
+        cursor: pointer;
+        letter-spacing: 0.05em;
+        transition: opacity 0.2s;
+      }
+
+      button:hover {
+        opacity: 0.8;
+      }
+
+      .mode-btn {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--text);
+      }
+
+      .mode-btn.active {
+        background: var(--text);
+        color: var(--bg);
+      }
+
+      .status {
+        font-family: "Aboreto", cursive;
+        font-size: 1.6rem;
+        margin-top: 1rem;
+        min-height: 2.5rem;
+      }
+
+      /* SVG hover highlight — all faces of hovered voxel */
+      .game-container polygon {
+        transition:
+          fill 0.1s,
+          stroke 0.1s;
+      }
+      .game-container polygon.voxel-hover {
+        fill: var(--stroke-c) !important;
+        stroke: var(--stroke-c) !important;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Heerichsweeper</h1>
+    <div class="hud">
+      <div><span>Mines</span> <span id="mine-count">10</span></div>
+      <div><span>Flags</span> <span id="flag-count">0</span></div>
+      <div><span>Time</span> <span id="timer">0</span></div>
+    </div>
+    <div class="game-container" id="game"></div>
+    <div class="status" id="status"></div>
+    <div class="controls">
+      <button data-mode="easy" class="mode-btn active">Easy</button>
+      <button data-mode="normal" class="mode-btn">Normal</button>
+      <button data-mode="veteran" class="mode-btn">Veteran</button>
+    </div>
+
+    <script type="module">
+      import { Heerich } from "../src/heerich.js";
+
+      // ─── Config ────────────────────────────────────
+      const MODES = {
+        easy: { cols: 8, rows: 8, mines: 8, tile: 32, distance: 4 },
+        normal: { cols: 10, rows: 10, mines: 15, tile: 28, distance: 6 },
+        veteran: { cols: 14, rows: 14, mines: 35, tile: 22, distance: 10 },
+      };
+      let mode = "easy";
+      const LAYERS = 5;
+
+      // ─── Game state ────────────────────────────────
+      let grid; // grid[row][col] = { mine, count, revealed, flagged, exploded, revealT, revealStart }
+      let gameOver = false;
+      let gameWon = false;
+      let blastHoles = []; // [{cx, cy, cz, r, targetR, startTime}]
+      let animating = false;
+      let timerInterval = null;
+      let startTime = 0;
+      let elapsed = 0;
+      let timerStarted = false;
+      const timerEl = document.getElementById("timer");
+      // ViewBox animation state
+      let vb = { x: 0, y: 0, w: 0, h: 0 };
+      let vbTarget = { x: 0, y: 0, w: 0, h: 0 };
+      let vbAnimId = 0;
+
+      function animateViewBox(target) {
+        vbTarget = target;
+        const id = ++vbAnimId;
+        const start = { ...vb };
+        const startTime = performance.now();
+        const duration = 600;
+
+        function step(now) {
+          if (id !== vbAnimId) return;
+          const t = Math.min(1, (now - startTime) / duration);
+          const e = easeOutCubic(t);
+          vb.x = start.x + (target.x - start.x) * e;
+          vb.y = start.y + (target.y - start.y) * e;
+          vb.w = start.w + (target.w - start.w) * e;
+          vb.h = start.h + (target.h - start.h) * e;
+          const svgEl = container.querySelector("svg");
+          if (svgEl)
+            svgEl.setAttribute(
+              "viewBox",
+              `${vb.x.toFixed(2)} ${vb.y.toFixed(2)} ${vb.w.toFixed(2)} ${vb.h.toFixed(2)}`,
+            );
+          if (t < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      }
+
+      const REVEAL_DUR = 300; // ms per cell reveal
+      const REVEAL_STAGGER = 40; // ms stagger between flood-fill steps
+      const BLAST_DUR = 500; // ms for explosion
+
+      function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+      }
+
+      const container = document.getElementById("game");
+      const statusEl = document.getElementById("status");
+      const mineCountEl = document.getElementById("mine-count");
+      const flagCountEl = document.getElementById("flag-count");
+
+      // ─── Init board ────────────────────────────────
+      function startTimer() {
+        if (timerStarted) return;
+        timerStarted = true;
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+          elapsed = Math.floor((Date.now() - startTime) / 1000);
+          timerEl.textContent = elapsed;
+        }, 1000);
+      }
+
+      function stopTimer() {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+
+      function initGame() {
+        gameOver = false;
+        gameWon = false;
+        blastHoles = [];
+        timerStarted = false;
+        stopTimer();
+        elapsed = 0;
+        timerEl.textContent = "0";
+        statusEl.textContent = "";
+
+        const { cols: COLS, rows: ROWS, mines: MINES } = MODES[mode];
+
+        grid = Array.from({ length: ROWS }, () =>
+          Array.from({ length: COLS }, () => ({
+            mine: false,
+            count: 0,
+            revealed: false,
+            flagged: false,
+            exploded: false,
+          })),
+        );
+
+        // Place mines
+        let placed = 0;
+        while (placed < MINES) {
+          const r = Math.floor(Math.random() * ROWS);
+          const c = Math.floor(Math.random() * COLS);
+          if (!grid[r][c].mine) {
+            grid[r][c].mine = true;
+            placed++;
+          }
+        }
+
+        // Compute neighbor counts
+        for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+            if (grid[r][c].mine) continue;
+            let count = 0;
+            for (let dr = -1; dr <= 1; dr++) {
+              for (let dc = -1; dc <= 1; dc++) {
+                if (dr === 0 && dc === 0) continue;
+                const nr = r + dr,
+                  nc = c + dc;
+                if (
+                  nr >= 0 &&
+                  nr < ROWS &&
+                  nc >= 0 &&
+                  nc < COLS &&
+                  grid[nr][nc].mine
+                ) {
+                  count++;
+                }
+              }
+            }
+            grid[r][c].count = count;
+          }
+        }
+
+        mineCountEl.textContent = MINES;
+        flagCountEl.textContent = "0";
+        render();
+      }
+
+      // ─── Number colors ─────────────────────────────
+      const numColors = [
+        null,
+        "#2563eb", // 1
+        "#16a34a", // 2
+        "#dc2626", // 3
+        "#7c3aed", // 4
+        "#ea580c", // 5
+        "#0891b2", // 6
+        "#4b5563", // 7
+        "#1e293b", // 8
+      ];
+      // Dark mode handled via CSS - we use fixed colors in SVG content
+      const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const numColorsDark = [
+        null,
+        "#60a5fa",
+        "#4ade80",
+        "#f87171",
+        "#a78bfa",
+        "#fb923c",
+        "#22d3ee",
+        "#9ca3af",
+        "#e2e8f0",
+      ];
+
+      function getNumColor(n) {
+        if (n < 1 || n > 8) return isDark ? "#fbf4ea" : "#0e0e0e";
+        return isDark ? numColorsDark[n] : numColors[n];
+      }
+
+      // ─── Render ────────────────────────────────────
+      function render() {
+        const { cols: COLS, rows: ROWS, tile: TILE } = MODES[mode];
+        const h = new Heerich({
+          tile: TILE,
+          camera: {
+            type: "perspective",
+            position: [COLS / 2, ROWS / 2],
+            distance: MODES[mode].distance,
+          },
+          style: {
+            fill: "var(--fill)",
+            stroke: "var(--stroke-c)",
+            strokeWidth: "var(--stroke-w)",
+          },
+        });
+
+        // Unrevealed cell style — same as demo: background fill, dark outline
+        const unrevealedStyle = {
+          default: {
+            fill: "var(--fill)",
+            stroke: "var(--stroke-c)",
+            strokeWidth: "var(--stroke-w)",
+          },
+          front: {
+            fill: "var(--fill)",
+            stroke: "var(--stroke-c)",
+            strokeWidth: "var(--stroke-w)",
+          },
+        };
+
+        // Revealed floor style — same as unrevealed but one layer back
+        const revealedStyle = {
+          default: {
+            fill: "var(--fill)",
+            stroke: "var(--stroke-c)",
+            strokeWidth: "var(--stroke-w)",
+          },
+          front: {
+            fill: "var(--fill)",
+            stroke: "var(--stroke-c)",
+            strokeWidth: "var(--stroke-w)",
+          },
+        };
+
+        // Exploded wall style — lighter red for crater walls
+        const explodedWallStyle = {
+          default: {
+            fill: isDark ? "#f0807a" : "#e8a0a0",
+            stroke: isDark ? "#f0807a" : "#e8a0a0",
+            strokeWidth: 0.7,
+          },
+          front: {
+            fill: isDark ? "#f4908a" : "#f0b0b0",
+            stroke: isDark ? "#f4908a" : "#f0b0b0",
+            strokeWidth: 0.7,
+          },
+        };
+
+        // Build the base slab (3 layers along Z)
+        // Z=0 is closest to camera (front), Z=LAYERS-1 is furthest (back)
+        for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+            const cell = grid[r][c];
+
+            // Compute animation progress for this cell
+            const t = cell.revealT || 0;
+
+            if (cell.revealed || t > 0) {
+              // Full stack first, then carve away the front based on t
+              const carveDepth = Math.round(t); // 0 or 1 (snaps when animation completes)
+              const partialCarve = t > 0 && t < 1;
+
+              if (partialCarve) {
+                // During animation: full stack but subtract a growing slab from front
+                h.applyGeometry({
+                  type: "box",
+                  position: [c, r, 0],
+                  size: [1, 1, LAYERS],
+                  style: unrevealedStyle,
+                  meta: { col: c, row: r },
+                });
+                // Carve away front portion (z=0) using subtract
+                h.removeGeometry({
+                  type: "box",
+                  position: [c, r, 0],
+                  size: [1, 1, Math.max(1, Math.round(t))],
+                });
+              } else {
+                // Fully revealed
+                if (LAYERS - 1 > 0) {
+                  h.applyGeometry({
+                    type: "box",
+                    position: [c, r, 1],
+                    size: [1, 1, LAYERS - 1],
+                    style: revealedStyle,
+                  });
+                }
+              }
+
+              // Show content once animation is past halfway or complete
+              if (t >= 0.5 || carveDepth >= 1) {
+                if (cell.mine) {
+                  h.applyGeometry({
+                    type: "box",
+                    position: [c, r, 0],
+                    size: 1,
+                    opaque: false,
+                    content: `<text
+                      font-family="Aboreto, cursive"
+                      font-size="18"
+                      text-anchor="middle"
+                      dominant-baseline="central"
+                      fill="${isDark ? "#e74c3c" : "#c0392b"}"
+                    >●</text>`,
+                  });
+                } else if (cell.count > 0) {
+                  h.applyGeometry({
+                    type: "box",
+                    position: [c, r, 0],
+                    size: 1,
+                    opaque: false,
+                    content: `<text
+                      font-family="Aboreto, cursive"
+                      font-size="18"
+                      font-weight="400"
+                      text-anchor="middle"
+                      dominant-baseline="central"
+                      fill="${getNumColor(cell.count)}"
+                    >${cell.count}</text>`,
+                  });
+                }
+              }
+            } else {
+              // Unrevealed: full stack z=0 to z=LAYERS-1
+              h.applyGeometry({
+                type: "box",
+                position: [c, r, 0],
+                size: [1, 1, LAYERS],
+                style: cell.flagged
+                  ? {
+                      default: unrevealedStyle.default,
+                      front: {
+                        fill: isDark ? "#4a3a10" : "#f0e0a0",
+                        stroke: isDark ? "#6a5a20" : "#d4a017",
+                        strokeWidth: 0.5,
+                      },
+                    }
+                  : unrevealedStyle,
+                meta: { col: c, row: r },
+              });
+
+              // Flag content in front of the cell (z=-1)
+              if (cell.flagged) {
+                h.applyGeometry({
+                  type: "box",
+                  position: [c, r, -1],
+                  size: 1,
+                  opaque: false,
+                  content: `<text
+                    font-family="Aboreto, cursive"
+                    font-size="16"
+                    text-anchor="middle"
+                    dominant-baseline="central"
+                    fill="${isDark ? "#f0c040" : "#d4a017"}"
+                  >⚑</text>`,
+                });
+              }
+            }
+          }
+        }
+
+        // Apply blast holes (sphere subtractions) with animated radius
+        for (const hole of blastHoles) {
+          const currentR = hole.r; // animated radius set by animation loop
+          if (currentR > 0.1) {
+            h.removeGeometry({
+              type: "sphere",
+              center: [hole.cx, hole.cy, hole.cz],
+              radius: currentR,
+            });
+            h.applyStyle({
+              type: "sphere",
+              center: [hole.cx, hole.cy, hole.cz],
+              radius: currentR + 1.2,
+              style: explodedWallStyle,
+            });
+          }
+        }
+
+        const svg = h.toSVG({
+          padding: 15,
+          faceAttributes: (face) => {
+            const v = face.voxel;
+            if (v.meta && v.meta.col !== undefined) {
+              return {
+                "data-col": v.meta.col,
+                "data-row": v.meta.row,
+              };
+            }
+            return null;
+          },
+        });
+
+        container.innerHTML = svg;
+
+        // Animate viewBox transitions
+        const svgEl = container.querySelector("svg");
+        if (svgEl) {
+          const parts = svgEl.getAttribute("viewBox").split(" ").map(Number);
+          const newVb = { x: parts[0], y: parts[1], w: parts[2], h: parts[3] };
+          if (vb.w === 0) {
+            // First render — snap
+            vb = { ...newVb };
+            vbTarget = { ...newVb };
+          } else if (
+            newVb.x !== vbTarget.x ||
+            newVb.y !== vbTarget.y ||
+            newVb.w !== vbTarget.w ||
+            newVb.h !== vbTarget.h
+          ) {
+            animateViewBox(newVb);
+          }
+          // Apply current animated viewBox
+          svgEl.setAttribute(
+            "viewBox",
+            `${vb.x.toFixed(2)} ${vb.y.toFixed(2)} ${vb.w.toFixed(2)} ${vb.h.toFixed(2)}`,
+          );
+        }
+      }
+
+      // ─── Flood-fill reveal (BFS with staggered timing) ─
+      function reveal(r, c) {
+        const { cols: COLS, rows: ROWS } = MODES[mode];
+        const now = performance.now();
+        const queue = [[r, c, 0]]; // [row, col, depth]
+        const visited = new Set();
+        visited.add(`${r},${c}`);
+
+        while (queue.length > 0) {
+          const [cr, cc, depth] = queue.shift();
+          if (cr < 0 || cr >= ROWS || cc < 0 || cc >= COLS) continue;
+          const cell = grid[cr][cc];
+          if (cell.revealed || cell.flagged) continue;
+
+          cell.revealed = true;
+          cell.revealStart = now + depth * REVEAL_STAGGER;
+
+          if (cell.count === 0 && !cell.mine) {
+            for (let dr = -1; dr <= 1; dr++) {
+              for (let dc = -1; dc <= 1; dc++) {
+                if (dr === 0 && dc === 0) continue;
+                const key = `${cr + dr},${cc + dc}`;
+                if (!visited.has(key)) {
+                  visited.add(key);
+                  queue.push([cr + dr, cc + dc, depth + 1]);
+                }
+              }
+            }
+          }
+        }
+
+        startAnimation();
+      }
+
+      // ─── Animation loop ────────────────────────────
+      function startAnimation() {
+        if (animating) return;
+        animating = true;
+        requestAnimationFrame(animationFrame);
+      }
+
+      function animationFrame(now) {
+        let stillAnimating = false;
+        const { cols: COLS, rows: ROWS } = MODES[mode];
+
+        // Update cell reveal progress
+        for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+            const cell = grid[r][c];
+            if (cell.revealed && cell.revealStart !== undefined) {
+              const elapsed = now - cell.revealStart;
+              const t = Math.min(1, Math.max(0, elapsed / REVEAL_DUR));
+              cell.revealT = easeOutCubic(t);
+              if (t < 1) stillAnimating = true;
+              else delete cell.revealStart; // done
+            }
+          }
+        }
+
+        // Update blast hole radii
+        for (const hole of blastHoles) {
+          if (hole.startTime !== undefined) {
+            const elapsed = now - hole.startTime;
+            const t = Math.min(1, Math.max(0, elapsed / BLAST_DUR));
+            hole.r = hole.targetR * easeOutCubic(t);
+            if (t < 1) stillAnimating = true;
+            else delete hole.startTime; // done
+          }
+        }
+
+        render();
+
+        if (stillAnimating) {
+          requestAnimationFrame(animationFrame);
+        } else {
+          animating = false;
+        }
+      }
+
+      // ─── Check win ─────────────────────────────────
+      function checkWin() {
+        const { cols: COLS, rows: ROWS } = MODES[mode];
+        for (let r = 0; r < ROWS; r++) {
+          for (let c = 0; c < COLS; c++) {
+            if (!grid[r][c].mine && !grid[r][c].revealed) return false;
+          }
+        }
+        return true;
+      }
+
+      // ─── Handle click ──────────────────────────────
+      container.addEventListener("click", (e) => {
+        if (gameOver || gameWon) return;
+        const poly = e.target.closest("polygon[data-col]");
+        if (!poly) return;
+
+        const c = parseInt(poly.dataset.col);
+        const r = parseInt(poly.dataset.row);
+        if (isNaN(c) || isNaN(r)) return;
+
+        const cell = grid[r][c];
+        if (cell.flagged || cell.revealed) return;
+
+        startTimer();
+
+        if (cell.mine) {
+          // BOOM — punch a sphere hole with animated radius
+          cell.revealed = true;
+          cell.exploded = true;
+          cell.revealT = 1;
+
+          const now = performance.now();
+          blastHoles.push({
+            cx: c + 0.5,
+            cy: r + 0.5,
+            cz: LAYERS * 0.5,
+            r: 0, // starts at 0, animates to targetR
+            targetR: 1.8,
+            startTime: now,
+          });
+
+          // Reveal all mines with staggered animation
+          gameOver = true;
+          const { cols: COLS, rows: ROWS } = MODES[mode];
+          let delay = 0;
+          for (let mr = 0; mr < ROWS; mr++) {
+            for (let mc = 0; mc < COLS; mc++) {
+              if (grid[mr][mc].mine && !(mr === r && mc === c)) {
+                grid[mr][mc].revealed = true;
+                grid[mr][mc].revealT = 1;
+                grid[mr][mc].revealStart = now + 300 + delay;
+                blastHoles.push({
+                  cx: mc + 0.5,
+                  cy: mr + 0.5,
+                  cz: LAYERS * 0.5,
+                  r: 0,
+                  targetR: 1.8,
+                  startTime: now + 300 + delay,
+                });
+                delay += 120;
+              }
+            }
+          }
+
+          stopTimer();
+          statusEl.textContent = "BOOM";
+          startAnimation();
+          return;
+        }
+
+        reveal(r, c);
+
+        if (checkWin()) {
+          gameWon = true;
+          stopTimer();
+          statusEl.textContent = "CLEARED";
+        }
+      });
+
+      // ─── Right-click flag ──────────────────────────
+      container.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        if (gameOver || gameWon) return;
+
+        const poly = e.target.closest("polygon[data-col]");
+        if (!poly) return;
+
+        const c = parseInt(poly.dataset.col);
+        const r = parseInt(poly.dataset.row);
+        if (isNaN(c) || isNaN(r)) return;
+
+        const cell = grid[r][c];
+        if (cell.revealed) return;
+
+        cell.flagged = !cell.flagged;
+
+        // Update flag count
+        const { cols: COLS, rows: ROWS } = MODES[mode];
+        let flags = 0;
+        for (let mr = 0; mr < ROWS; mr++)
+          for (let mc = 0; mc < COLS; mc++) if (grid[mr][mc].flagged) flags++;
+        flagCountEl.textContent = flags;
+
+        render();
+      });
+
+      // ─── Hover — highlight all faces of same voxel ──
+      let hoveredPolys = [];
+      container.addEventListener("mouseover", (e) => {
+        const poly = e.target.closest("polygon[data-voxel]");
+        // Clear previous
+        for (const p of hoveredPolys) p.classList.remove("voxel-hover");
+        hoveredPolys = [];
+        if (!poly || !poly.dataset.col) return;
+        const voxelId = poly.dataset.voxel;
+        const svg = container.querySelector("svg");
+        if (!svg) return;
+        hoveredPolys = [
+          ...svg.querySelectorAll(`polygon[data-voxel="${voxelId}"]`),
+        ];
+        for (const p of hoveredPolys) p.classList.add("voxel-hover");
+      });
+      container.addEventListener("mouseleave", () => {
+        for (const p of hoveredPolys) p.classList.remove("voxel-hover");
+        hoveredPolys = [];
+      });
+
+      // ─── Mode buttons ────────────────────────────────
+      document.querySelectorAll(".mode-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document
+            .querySelectorAll(".mode-btn")
+            .forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          mode = btn.dataset.mode;
+          initGame();
+        });
+      });
+
+      // ─── Start ─────────────────────────────────────
+      initGame();
+    </script>
+  </body>
+</html>

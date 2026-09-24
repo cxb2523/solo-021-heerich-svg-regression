@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "rootDir": "src",
+    "outDir": "dist",
+    "strict": false,
+    "moduleResolution": "node16",
+    "module": "node16",
+    "target": "ESNext"
+  },
+  "include": ["src/heerich.js"]
+}

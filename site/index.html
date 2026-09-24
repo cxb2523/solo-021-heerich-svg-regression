@@ -1,0 +1,1542 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>heerich.js — Interactive Guide</title>
+    <meta
+      name="description"
+      content="A tiny engine for 3D voxel scenes rendered to SVG. Boolean ops, oblique/perspective cameras, zero dependencies. Inspired by the geometric cardboard sculptures of Erwin Heerich."
+    />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="heerich.js" />
+    <meta
+      property="og:description"
+      content="Tiny engine for 3D voxel scenes rendered to SVG — boolean ops, oblique/perspective cameras, zero dependencies."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://meodai.github.io/heerich/" />
+    <meta
+      property="og:image"
+      content="https://meodai.github.io/heerich/social.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="683" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="heerich.js" />
+    <meta
+      name="twitter:description"
+      content="Tiny engine for 3D voxel scenes rendered to SVG — boolean ops, oblique/perspective cameras, zero dependencies."
+    />
+    <meta
+      name="twitter:image"
+      content="https://meodai.github.io/heerich/social.png"
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Aboreto&family=Work+Sans:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./site.css" />
+  </head>
+  <body>
+    <details class="settings-panel" id="settings-panel" open>
+      <summary class="settings-title">
+        Settings <span class="details-icon-closed">▥</span>
+      </summary>
+      <div class="settings-section-title">
+        Camera
+        <button
+          class="btn-shuffle"
+          id="btn-randomize-settings"
+          title="Randomize settings"
+        >
+          ⇋
+        </button>
+      </div>
+      <div class="settings-fields">
+        <label class="control-label">
+          <span>Type</span>
+          <select class="control-select" id="cam-proj">
+            <option value="oblique">oblique</option>
+            <option value="perspective">perspective</option>
+            <option value="orthographic">orthographic</option>
+            <option value="isometric">isometric</option>
+          </select>
+        </label>
+        <label class="control-label" id="cam-angle-label">
+          <span>Angle</span>
+          <input type="range" id="cam-angle" min="0" max="360" value="315" />
+          <span class="control-value">315</span>
+        </label>
+        <label class="control-label" id="cam-y-label">
+          <span>Cam Y</span>
+          <input
+            type="range"
+            id="cam-y"
+            min="-10"
+            max="20"
+            value="5"
+            step="0.5"
+          />
+          <span class="control-value">5</span>
+        </label>
+        <div class="settings-grid-panel" id="cam-perspective-control" hidden>
+          <div class="settings-grid-header">
+            <span>Angle / Cam Y</span>
+            <span class="settings-grid-values"
+              ><span id="cam-grid-angle-value">315</span>
+              <span class="settings-grid-separator">/</span>
+              <span id="cam-grid-y-value">5</span></span
+            >
+          </div>
+          <div class="settings-grid" id="cam-grid">
+            <i class="settings-grid__indicator"></i>
+            <i class="settings-grid__dot"></i>
+            <i class="settings-grid__center"></i>
+          </div>
+        </div>
+        <label class="control-label">
+          <span>Distance</span>
+          <input type="range" id="cam-dist" min="1" max="80" value="10" />
+          <span class="control-value">10</span>
+        </label>
+      </div>
+      <div class="settings-section-title">
+        Style
+        <button
+          class="btn-shuffle"
+          id="btn-randomize-style"
+          title="Randomize style"
+        >
+          ⇋
+        </button>
+      </div>
+      <div class="settings-fields">
+        <label class="control-label">
+          <span>Fill</span>
+          <input type="color" id="cam-fill" value="#fbf4ea" />
+          <button
+            type="button"
+            id="cam-fill-clear"
+            title="Set fill to transparent"
+            style="
+              padding: 0 0.3em;
+              font-size: 0.7rem;
+              line-height: 1;
+              cursor: pointer;
+              border: 1px solid var(--line);
+              background: transparent;
+              color: var(--text);
+            "
+          >
+            &times;
+          </button>
+        </label>
+        <label class="control-label">
+          <span>Stroke</span>
+          <input type="color" id="cam-stroke-color" value="#18191b" />
+        </label>
+        <label class="control-label">
+          <span>Width</span>
+          <input
+            type="range"
+            id="cam-stroke"
+            min="0"
+            max="3"
+            value="0.5"
+            step="0.1"
+          />
+          <span class="control-value">0.5</span>
+        </label>
+        <label class="control-label">
+          <span>Gap</span>
+          <input
+            type="range"
+            id="cam-gap"
+            min="0"
+            max="0.2"
+            value="0"
+            step="0.01"
+          />
+          <span class="control-value">0</span>
+        </label>
+        <label class="control-label">
+          <span>Outline</span>
+          <input
+            type="range"
+            id="cam-outline"
+            min="0"
+            max="5"
+            value="0"
+            step="0.5"
+          />
+          <span class="control-value">0</span>
+        </label>
+        <label class="control-label">
+          <span>O-Color</span>
+          <input type="color" id="cam-outline-color" value="#18191b" />
+        </label>
+      </div>
+    </details>
+
+    <div class="hero" id="hero"></div>
+
+    <article>
+      <div class="intro">
+        <div class="intro-text">
+          <h1>
+            heerich.js <span class="version"></span>
+            <small>A tiny engine for 3D voxel scenes rendered to SVG</small>
+          </h1>
+
+          <p>
+            heerich.js is a minimalist JavaScript engine that constructs 3D
+            voxel compositions and distills them into pristine SVG. By extruding
+            volumes, carving negative space, and applying boolean operations,
+            you wield a programmatic chisel—projecting complex spatial
+            arrangements into a flat, resolution-independent vector canvas.
+          </p>
+
+          <p>
+            While SVG trades raw frame-rates for architectural elegance, its
+            integration with the DOM is profound. The resulting geometry sits
+            natively within the browser, inviting manipulation through CSS and
+            uncompromised infinite scaling. The output is not an ephemeral pixel
+            buffer, but semantic, stylable, and enduring markup.
+          </p>
+
+          <p>
+            The visual language draws deep inspiration from the geometric rigor
+            of
+            <a href="https://de.wikipedia.org/wiki/Erwin_Heerich"
+              >Erwin Heerich</a
+            ><sup>†</sup>
+            (1922–2004) — exploring stacked topologies, deliberate subtractions,
+            and the quiet tension that exists between solid mass and absolute
+            void.
+          </p>
+
+          <p>
+            This page serves as both a technical manual and an interactive
+            gallery. Engage with the examples below to comprehend the mechanics
+            of the engine one primitive at a time.
+          </p>
+        </div>
+
+        <nav>
+          <ol>
+            <li><a href="#setup">Creating an engine</a></li>
+            <li><a href="#boxes">Boxes</a></li>
+            <li><a href="#spheres">Spheres</a></li>
+            <li><a href="#lines">Lines</a></li>
+            <li><a href="#custom-shapes">Custom shapes</a></li>
+            <li><a href="#alignment">Alignment</a></li>
+            <li><a href="#carving">Boolean operations</a></li>
+            <li><a href="#rotation">Rotation</a></li>
+            <li><a href="#grouping">Smooth solids</a></li>
+            <li><a href="#styles">Styling faces</a></li>
+            <li><a href="#decals">Using decals</a></li>
+            <li><a href="#hatching">Hatching</a></li>
+            <li><a href="#svg-styles">SVG style properties</a></li>
+            <li><a href="#functional">Functional styles</a></li>
+            <li><a href="#scale">Voxel scaling</a></li>
+            <li><a href="#functional-scale">Functional scale</a></li>
+            <li><a href="#opaque">Transparent voxels</a></li>
+            <li><a href="#content-voxels">Content voxels</a></li>
+            <li><a href="#queries">Querying voxels</a></li>
+            <li><a href="#find-voxels">Finding voxels</a></li>
+            <li><a href="#find-by-position">Position queries</a></li>
+            <li><a href="#animation">Animation</a></li>
+            <li><a href="#combined">Putting it all together</a></li>
+            <li><a href="#gallery">After Heerich</a></li>
+            <li><a href="#support">Credits</a></li>
+          </ol>
+        </nav>
+      </div>
+
+      <!-- ─── 1. Setup (text-only) ──────────────────────── -->
+
+      <div class="section-full">
+        <h2 id="setup">Creating an engine</h2>
+
+        <p>
+          A <code>Heerich</code> instance holds a 3D grid of voxels and knows
+          how to project them into 2D SVG. You initialize one by providing grid
+          dimensions, a rendering tile size in pixels, and an optional baseline
+          style applied universally across the active sequence.
+        </p>
+
+        <pre><code>import { Heerich } from './src/heerich.js'
+
+const heerich = new Heerich({
+  camera: { type: 'oblique', angle: 315, distance: 25 },
+  style: { fill: '#ddd', stroke: '#333', strokeWidth: 0.5 },
+  gap: 0.05 // uniform spacing between voxels (0–0.5)
+})</code></pre>
+
+        <p>
+          All parameters are optional — <code>new Heerich()</code> works with
+          sensible defaults. Call <code>heerich.toSVG()</code> to get an SVG
+          string you can drop into the DOM.
+        </p>
+
+        <p>
+          The SVG is automatically centered — the engine computes the exact
+          bounding box of all visible geometry and sets the
+          <code>viewBox</code> to fit it, with optional padding. No manual
+          positioning needed, even when shapes extend into negative coordinates.
+        </p>
+
+        <pre><code >// Auto-centered with padding
+document.body.innerHTML = heerich.toSVG({ padding: 30 })
+
+// Access raw bounds if you need them
+const { x, y, w, h } = heerich.getBounds()</code></pre>
+      </div>
+
+      <!-- ─── 2. Boxes ──────────────────────────────────── -->
+
+      <div class="section-row" id="boxes">
+        <div class="section-demo">
+          <div class="demo" id="demo-box">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label"
+                >Width
+                <input type="range" min="1" max="10" value="6" data-bind="w" />
+                <span class="control-value">6</span></label
+              >
+              <label class="control-label"
+                >Height
+                <input type="range" min="1" max="10" value="4" data-bind="h" />
+                <span class="control-value">4</span></label
+              >
+              <label class="control-label"
+                >Depth
+                <input type="range" min="1" max="10" value="3" data-bind="d" />
+                <span class="control-value">3</span></label
+              >
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Boxes</h2>
+          <p>
+            The most fundamental primitive is a box — a rectangular volume
+            anchored by a corner <code>position</code> and dimensions. You can
+            also use <code>center</code> instead — the engine offsets by half
+            the size automatically.
+          </p>
+          <pre><code >heerich.applyGeometry({
+  type: 'box',
+  position: [0, 0, 0],
+  size: [6, 4, 3]
+})</code></pre>
+          <p>
+            Drag the sliders below — the engine clears and rebuilds the scene on
+            every frame. Because <code>getFaces()</code> utilizes a dirty-flag
+            cache, calculating rapid structural changes remains highly
+            efficient.
+          </p>
+        </div>
+      </div>
+
+      <!-- ─── 4. Spheres ────────────────────────────────── -->
+
+      <div class="section-row" id="spheres">
+        <div class="section-demo">
+          <div class="demo" id="demo-sphere">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label"
+                >Radius
+                <input
+                  type="range"
+                  min="1"
+                  max="8"
+                  value="4.5"
+                  step="0.5"
+                  data-bind="r"
+                />
+                <span class="control-value">4.5</span></label
+              >
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Spheres</h2>
+          <p>
+            <code>applyGeometry({ type: 'sphere' })</code> plots a rounded
+            volume using an internal distance check. You can use
+            <code>position</code> (bounding-box corner) instead of
+            <code>center</code>, and <code>size</code> instead of
+            <code>radius</code>. Fractional offsets like <code>.5</code> for
+            both radius and center (e.g., center: <code>4</code>, radius:
+            <code>4</code>) tend to produce the cleanest symmetrical forms on
+            integer grids.
+          </p>
+          <pre><code >heerich.applyGeometry({
+  type: 'sphere',
+  center: [4.5, 4.5, 4.5],
+  radius: 4.5
+})</code></pre>
+          <p>
+            Conversely, <code>removeGeometry({ type: 'sphere' })</code> carves a
+            hollow void using the exact same parameters. Layer a sphere
+            subtraction into a solid box to effortlessly create arched doorways
+            or dome cutouts.
+          </p>
+        </div>
+      </div>
+
+      <!-- ─── 5. Lines ──────────────────────────────────── -->
+
+      <div class="section-row" id="lines">
+        <div class="section-demo">
+          <div class="demo" id="demo-line">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label"
+                >Radius
+                <input
+                  type="range"
+                  min="0"
+                  max="3"
+                  value="1.5"
+                  step="0.5"
+                  data-bind="r"
+                />
+                <span class="control-value">1.5</span></label
+              >
+              <label class="control-label"
+                >Shape
+                <select class="control-select" data-bind="shape">
+                  <option value="rounded">rounded</option>
+                  <option value="square">square</option>
+                </select>
+              </label>
+              <label class="control-label"
+                >End X
+                <input type="range" min="0" max="12" value="8" data-bind="ex" />
+                <span class="control-value">8</span></label
+              >
+              <label class="control-label"
+                >End Z
+                <input type="range" min="0" max="12" value="8" data-bind="ez" />
+                <span class="control-value">8</span></label
+              >
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Lines</h2>
+          <p>
+            <code>applyGeometry({ type: 'line' })</code> plots a continuous
+            voxelized path between two spatial coordinates. Lines are the only
+            shape that uses <code>from</code>/<code>to</code> instead of the
+            usual <code>position</code>/<code>center</code> + <code>size</code>.
+            You can thicken the stroke via <code>radius</code>, and alter its
+            joint geometry via <code>shape</code> — choosing either
+            <code>'rounded'</code> (a sequence of overlapping spheres) or
+            <code>'square'</code> (overlapping cubes).
+          </p>
+          <pre><code >heerich.applyGeometry({
+  type: 'line', from: [0, 0, 0], to: [8, 8, 8],
+  radius: 1.5, shape: 'rounded'
+})</code></pre>
+        </div>
+      </div>
+
+      <!-- ─── Custom shapes ──────────────────────────────── -->
+
+      <div class="section-row" id="custom-shapes">
+        <div class="section-demo">
+          <div class="demo" id="demo-custom-shape">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label"
+                >Size
+                <input
+                  type="range"
+                  min="3"
+                  max="8"
+                  value="5"
+                  step="1"
+                  data-bind="size"
+                />
+                <span class="control-value">5</span></label
+              >
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Custom shapes</h2>
+          <p>
+            <code>applyGeometry({ type: 'fill' })</code> is the engine's
+            architectural bedrock &mdash; allowing you to define arbitrary
+            geometry as an evaluation function over
+            <code>(x,&nbsp;y,&nbsp;z)</code>
+            coordinates. You can specify the area with <code>bounds</code>, or
+            use <code>position</code>/<code>center</code> +
+            <code>size</code> like other shapes. Under the hood, boxes, spheres,
+            and lines are merely convenient wrappers around this core method.
+          </p>
+          <pre><code >heerich.applyGeometry({
+  type: 'fill', bounds: [[0, 0, 0], [s, s, s]],
+  test: (x, y, z) => {
+    const c = Math.ceil(s / 4)
+    const nearEdge = [x, y, z].filter(
+      v => v &lt; c || v >= s - c
+    ).length
+    return nearEdge &lt; 3
+  }
+})</code></pre>
+          <p>
+            The <code>test</code> method evaluates every coordinate within the
+            specified <code>bounds</code> &mdash; returning
+            <code>true</code> spawns a voxel. All standard properties (like
+            <code>style</code>, <code>scale</code>, or <code>mode</code>)
+            continue to apply.
+          </p>
+        </div>
+      </div>
+
+      <!-- ─── Alignment ─────────────────────────────────── -->
+
+      <div class="section-row" id="alignment">
+        <div class="section-demo">
+          <div class="demo" id="demo-align">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label"
+                >Align
+                <select class="control-select" data-bind="align">
+                  <option value="center">center</option>
+                  <option value="min">min corner</option>
+                  <option value="max">max corner</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Alignment</h2>
+          <p>
+            <code>position</code> always anchors to the minimum corner of the
+            shape's bounding box. To align objects of different sizes on a
+            shared surface, offset the smaller one manually.
+          </p>
+          <pre><code >const big = [6, 6, 6], small = [2, 2, 2]
+
+// Align max corners (tops flush)
+const max = big.map((b, i) => b - small[i])
+
+// Center (works perfectly when difference is even)
+const center = big.map((b, i) => (b - small[i]) / 2)</code></pre>
+          <p>
+            One subtraction per axis — the engine stays minimal and you stay in
+            control. For pixel-perfect centering on an integer grid, use
+            even-numbered size differences.
+          </p>
+        </div>
+      </div>
+
+      <!-- ─── 6. Boolean operations ─────────────────────────── -->
+
+      <div class="section-row" id="carving">
+        <div class="section-demo">
+          <div class="demo" id="demo-boolean">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label"
+                >Mode
+                <select class="control-select" data-bind="mode">
+                  <option value="union">union | A ∪ B | combine</option>
+                  <option value="subtract">
+                    subtract | A − B | remove overlap
+                  </option>
+                  <option value="intersect">
+                    intersect | A ∩ B | keep overlap
+                  </option>
+                  <option value="exclude" selected>
+                    exclude | A △ B | XOR
+                  </option>
+                </select>
+              </label>
+              <label class="control-label"
+                >Offset
+                <input
+                  type="range"
+                  min="0"
+                  max="6"
+                  value="3"
+                  data-bind="offset"
+                />
+                <span class="control-value">3</span></label
+              >
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Boolean operations</h2>
+          <p>
+            Every shape primitive accepts a <code>mode</code> property dictating
+            how it weaves into the existing voxel grid:
+          </p>
+          <ul>
+            <li><strong>union</strong> — add voxels (default)</li>
+            <li><strong>subtract</strong> — remove voxels</li>
+            <li><strong>intersect</strong> — keep only the overlap</li>
+            <li><strong>exclude</strong> — XOR, toggle each voxel</li>
+          </ul>
+          <pre><code >heerich.applyGeometry({
+  type: 'box',
+  position: [0, 0, 0],
+  size: 6
+})
+
+// Carve a sphere out of the box
+heerich.applyGeometry({
+  type: 'sphere', center: [3, 3, 3], radius: 3,
+  mode: 'subtract'
+})
+
+// Keep only where box and sphere overlap
+heerich.applyGeometry({
+  type: 'sphere', center: [3, 3, 3], radius: 3,
+  mode: 'intersect'
+})</code></pre>
+          <p>
+            <code>removeGeometry()</code> is a shortcut for
+            <code>mode: 'subtract'</code>. <code>addGeometry()</code> is a
+            shortcut for <code>mode: 'union'</code>.
+          </p>
+        </div>
+      </div>
+
+      <!-- ─── 7. Rotation ──────────────────────────────────── -->
+
+      <div class="section-row" id="rotation">
+        <div class="section-demo">
+          <div class="demo" id="demo-rotation">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label"
+                >Turns
+                <input
+                  type="range"
+                  min="0"
+                  max="3"
+                  value="1"
+                  step="1"
+                  data-bind="turns"
+                />
+                <span class="control-value">1</span></label
+              >
+              <label class="control-label"
+                >Axis
+                <select class="control-select" data-bind="axis">
+                  <option value="z">Z (up)</option>
+                  <option value="x">X</option>
+                  <option value="y">Y</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Rotation</h2>
+          <p>
+            Every primitive accepts a <code>rotate</code> configuration mapped
+            to precise 90° increments. Simply specify a rotation
+            <code>axis</code> and the count of quarter-<code>turns</code>. By
+            default, shapes pivot around their local center, but arbitrary
+            custom origins are seamlessly supported.
+          </p>
+          <pre><code >// Build one arm, rotate a copy to make an L
+heerich.applyGeometry({
+  type: 'box',
+  position: [0, 0, 0],
+  size: [2, 8, 2]
+})
+heerich.applyGeometry({
+  type: 'box', position: [0, 0, 0], size: [2, 8, 2],
+  rotate: { axis: 'z', turns: 1 }
+})
+
+// Rotate all existing voxels in place
+heerich.rotate({ axis: 'y', turns: 2 })</code></pre>
+          <p>
+            This dramatically simplifies creating symmetrical structures:
+            construct one facet, then repeatedly rotate clones around a central
+            pivot. (For example, the Kreuzplastik in the gallery below derives
+            entirely from a single arm sequence rotated into a cross.)
+          </p>
+        </div>
+      </div>
+
+      <!-- ─── 8. Grouped voxels ─────────────────────────── -->
+
+      <div class="section-row" id="grouping">
+        <div class="section-demo">
+          <div class="demo" id="demo-group">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label"
+                >Group size
+                <input
+                  type="range"
+                  min="1"
+                  max="4"
+                  value="2"
+                  step="1"
+                  data-bind="gs"
+                />
+                <span class="control-value">2</span></label
+              >
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Smooth solids</h2>
+          <p>
+            By default, every 1&times;1&times;1 unit renders its own distinct
+            stroke. To fuse a shape into a single, visually seamless solid,
+            simply assign the
+            <code>stroke</code> the exact same color as the <code>fill</code>,
+            effectively rendering the internal grid geometry invisible.
+          </p>
+          <pre><code >heerich.applyGeometry({
+  type: 'box', position: [0, 0, 0], size: 4,
+  style: { default: { fill: '#0e0e0e', stroke: '#0e0e0e' } }
+})</code></pre>
+          <p>
+            Untouched structural voxels retain their outlines, naturally
+            producing a crisp contrast between smooth, monolithic volumes and
+            articulated grids.
+          </p>
+        </div>
+      </div>
+
+      <!-- ─── 9. Styles ──────────────────────────────────── -->
+
+      <div class="section-row" id="styles">
+        <div class="section-demo">
+          <div class="demo" id="demo-style">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label">
+                <span>Fill</span>
+                <select class="control-select" data-bind="mode">
+                  <option value="plain">Plain</option>
+                  <option value="gradient">Gradient</option>
+                  <option value="voxel">Per-voxel</option>
+                  <option value="plane">Plane</option>
+                </select>
+              </label>
+              <label class="control-label"
+                >X <input type="color" value="#e2d058" data-bind="x"
+              /></label>
+              <label class="control-label"
+                >Y <input type="color" value="#f1a03c" data-bind="y"
+              /></label>
+              <label class="control-label"
+                >Z <input type="color" value="#0e0e0e" data-bind="z"
+              /></label>
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Styling faces</h2>
+          <p>
+            The engine tracks styles on a strict per-face basis:
+            <code>top</code>, <code>front</code>, <code>left</code>,
+            <code>right</code>, <code>bottom</code>, and <code>back</code>,
+            alongside a <code>default</code> fallback. The axis shorthands
+            <code>x</code> (left + right), <code>y</code> (top + bottom) and
+            <code>z</code> (front + back) paint both faces of an axis at once —
+            an explicit face still overrides them. You can inject these styles
+            during shape creation, or explicitly overwrite existing regions
+            later using <code>applyStyle()</code>.
+          </p>
+          <pre><code >heerich.applyGeometry({
+  type: 'box', position: [0, 0, 0], size: 4,
+  style: {
+    default: { fill: '#eee', stroke: '#333' },
+    x: { fill: '#66ff66' }, // left + right
+    y: { fill: '#ff6666' }, // top + bottom
+    z: { fill: '#6666ff' }  // front + back
+  }
+})</code></pre>
+          <p>
+            Crucially, <code>applyStyle()</code> applies localized 'paint' to
+            <em>existing</em>
+            geometry without fabricating new voxels — ideal for shading specific
+            cross-sections after the overall volume is finalized.
+          </p>
+        </div>
+      </div>
+
+      <!-- ─── 9b. Decals ──────────────────────────────────── -->
+
+      <div class="section-row" id="decals">
+        <div class="section-demo">
+          <div class="demo" id="demo-decals">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <button data-bind="randomize">Randomize</button>
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Using decals</h2>
+          <p>
+            Register named <code>&lt;path&gt;</code> elements authored in a
+            <code>0–1</code> unit coordinate space. Reference them by name in
+            any face style — the engine warps every path coordinate via bilinear
+            interpolation onto the projected face quad, so decals deform
+            correctly with both oblique and perspective cameras.
+          </p>
+          <pre><code>scene.defineDecal('cross', {
+  content: '&lt;path d="M0 0 L1 1 M1 0 L0 1" stroke="#333" fill="none" vector-effect="non-scaling-stroke"/&gt;'
+});
+
+scene.addGeometry({
+  type: 'box', position: [0, 0, 0], size: 1,
+  style: {
+    top: { fill: '#fff', decal: 'cross' }
+  }
+});</code></pre>
+          <p>
+            All path commands are supported, both absolute (M, L, H, V, C, S, Q,
+            T, A, Z) and relative (m, l, h, v, c, s, q, t, a, z) — arcs are
+            automatically converted to cubic beziers before warping. Only
+            <code>&lt;path&gt;</code> elements are supported for now; other
+            shapes must be converted to paths first.
+          </p>
+        </div>
+      </div>
+
+      <!-- ─── 9c. Hatching ─────────────────────────────────── -->
+
+      <div class="section-row" id="hatching">
+        <div class="section-demo">
+          <div class="demo" id="demo-hatching">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label">
+                Angle
+                <input
+                  type="range"
+                  min="0"
+                  max="180"
+                  value="45"
+                  step="1"
+                  data-bind="angle"
+                />
+                <span class="control-value">45</span>
+              </label>
+              <label class="control-label">
+                Period
+                <input
+                  type="range"
+                  min="0.5"
+                  max="20"
+                  value="1"
+                  step="0.5"
+                  data-bind="period"
+                />
+                <span class="control-value">5</span>
+              </label>
+              <label class="control-label">
+                Color <input type="color" value="#000000" data-bind="color" />
+              </label>
+              <label class="control-label">
+                Width
+                <input
+                  type="range"
+                  min="0.1"
+                  max="6"
+                  value="0.2"
+                  step="0.1"
+                  data-bind="width"
+                />
+                <span class="control-value">1</span>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Hatching</h2>
+          <p>
+            Add a <code>hatch</code> object to any face style to overlay
+            parallel lines. The lines are clipped precisely to the face polygon
+            — including partially-occluded faces when occlusion culling is
+            active.
+          </p>
+          <pre><code>heerich.addGeometry({
+  type: 'box', position: [0, 0, 0], size: 4,
+  style: {
+    top:   { fill: '#eee', hatch: { angle: 45, period: 5 } },
+    front: { fill: '#ccc', hatch: { angle: 90, period: 8, stroke: '#666' } },
+    right: { fill: '#ddd', hatch: { angle: 0,  period: 6, strokeWidth: 2 } }
+  }
+});</code></pre>
+          <p>
+            Options: <code>angle</code> (degrees, default <code>45</code>),
+            <code>period</code> (px between lines, default <code>5</code>),
+            <code>stroke</code> (color, defaults to <code>currentColor</code>),
+            <code>strokeWidth</code> (default <code>1</code>), and
+            <code>opacity</code>. The same callback API as other styles applies
+            — pass a function to vary hatching per-voxel.
+          </p>
+        </div>
+      </div>
+
+      <!-- ─── 10. SVG styles ──────────────────────────────── -->
+
+      <div class="section-row" id="svg-styles">
+        <div class="section-demo">
+          <div class="demo" id="demo-svg-styles">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label"
+                >Opacity
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  value="0.6"
+                  step="0.05"
+                  data-bind="opacity"
+                />
+                <span class="control-value">0.6</span></label
+              >
+              <label class="control-label"
+                >Stroke dash
+                <input
+                  type="range"
+                  min="0"
+                  max="20"
+                  value="0"
+                  step="1"
+                  data-bind="dash"
+                />
+                <span class="control-value">0</span></label
+              >
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>SVG style properties</h2>
+          <p>
+            Internal style objects map perfectly to native SVG attributes. If
+            SVG natively understands a property, you can pass it directly. This
+            unleashes the full rendering spec — enabling <code>opacity</code>,
+            dotted edges via <code>strokeDasharray</code>, rounded
+            <code>strokeLinecap</code> margins, or any other
+            <a
+              href="https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute#presentation_attributes"
+              >presentation attribute</a
+            >.
+          </p>
+          <pre><code >heerich.applyGeometry({
+  type: 'box', position: [0, 0, 0], size: 5,
+  style: {
+    default: {
+      fill: 'var(--fill)',
+      stroke: 'var(--stroke-c)',
+      strokeWidth: 'var(--stroke-w)',
+      opacity: 0.6,
+      strokeDasharray: '4 2'
+    }
+  }
+})</code></pre>
+          <p>
+            Because style values resolve as strings, you can seamlessly pass
+            native CSS
+            <code>var()</code> references. That strategy powers the interactive
+            controls across this documentation: the engine natively outputs
+            <code>var(--fill)</code>, and the browser resolves the cascade
+            against document state in real time.
+          </p>
+        </div>
+      </div>
+
+      <!-- ─── 11. Functional styles ──────────────────────── -->
+
+      <div class="section-row" id="functional">
+        <div class="section-demo">
+          <div class="demo" id="demo-functional">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label"
+                >Size
+                <input type="range" min="2" max="10" value="2" data-bind="s" />
+                <span class="control-value">2</span></label
+              >
+              <label class="control-label"
+                >Hue Range
+                <input
+                  type="range"
+                  min="30"
+                  max="360"
+                  value="360"
+                  data-bind="hue"
+                />
+                <span class="control-value">360</span></label
+              >
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Functional styles</h2>
+          <p>
+            Instead of static objects, styles can be assigned as pure computing
+            functions tracking over <code>(x,&nbsp;y,&nbsp;z)</code> parameters.
+            This effortlessly powers cascading gradients, periodic patterns, or
+            geometry-dependent shading rules — bypassing the need to iterate
+            through individual voxels manually.
+          </p>
+          <pre><code >heerich.applyGeometry({
+  type: 'box', position: [0, 0, 0], size: 8,
+  style: {
+    default: (x, y, z) => {
+      const L = 0.4 + (y / 8) * 0.5
+      const C = 0.05 + (z / 8) * 0.2
+      const H = (x / 8) * 360
+      return {
+        fill: `oklch(${L} ${C} ${H})`,
+        stroke: `oklch(${L - 0.12} ${C} ${H})`
+      }
+    }
+  }
+})</code></pre>
+          <p>
+            These callbacks are invoked exactly once at voxel creation.
+            Individual faces can possess their own isolated functions — letting
+            you freely cross-pollinate static hues with calculated spectral
+            shifts.
+          </p>
+        </div>
+      </div>
+
+      <!-- ─── 12. Voxel scaling ─────────────────────────────── -->
+
+      <div class="section-row" id="scale">
+        <div class="section-demo">
+          <div class="demo" id="demo-scale">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label"
+                >Height
+                <input
+                  type="range"
+                  min="0.1"
+                  max="1"
+                  value="1"
+                  step="0.05"
+                  data-bind="height"
+                />
+                <span class="control-value">1</span></label
+              >
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Voxel scaling</h2>
+          <p>
+            Every single voxel supports an internal <code>scale</code> — an
+            <code>[x, y, z]</code> envelope mapped from 0 to 1 that collapses
+            the volume along internal axes. Scaled geometry automatically
+            triggers non-opaque rendering, correctly preserving visibility for
+            occluded geometry layered behind it.
+          </p>
+          <pre><code >// Static — same scale for every voxel
+heerich.applyGeometry({
+  type: 'box', position: [0, 0, 0],
+  size: 1,
+  scale: [1, 0.5, 1],
+  scaleOrigin: [0.5, 1, 0.5]
+})
+
+// Functional — scale varies by position
+heerich.applyGeometry({
+  type: 'box', position: [0, 0, 0],
+  size: 4,
+  scale: (x, y, z) => [1, 1 - y * 0.2, 1],
+  scaleOrigin: [0.5, 1, 0.5]
+})</code></pre>
+          <p>
+            The <code>scaleOrigin</code> dictates the spatial pivot for this
+            scaling inside the 1&times;1&times;1 unit block — for example,
+            <code>[0.5, 1, 0.5]</code>
+            anchors geometry strictly to the bottom-center, creating natural
+            staircase topologies. As with styles, both vectors seamlessly accept
+            functional callbacks for dynamic parameter shifting.
+          </p>
+        </div>
+      </div>
+
+      <!-- ─── 13. Functional scale ────────────────────────── -->
+
+      <div class="section-row" id="functional-scale">
+        <div class="section-demo">
+          <div class="demo" id="demo-functional-scale">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label"
+                >Size
+                <input
+                  type="range"
+                  min="2"
+                  max="8"
+                  value="3"
+                  step="1"
+                  data-bind="size"
+                />
+                <span class="control-value">5</span></label
+              >
+              <label class="control-label"
+                >Taper
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  value="0.8"
+                  step="0.05"
+                  data-bind="taper"
+                />
+                <span class="control-value">0.8</span></label
+              >
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Functional scale</h2>
+          <p>
+            As implied, evaluating <code>scale</code> as an
+            <code>(x,&nbsp;y,&nbsp;z)</code> function empowers you to calculate
+            spatial decay based exclusively on local position. You can instantly
+            engineer complex tapers, rounded organic falloffs, or gracefully
+            staggered architectural elements without stepping outside a single
+            generative routine.
+          </p>
+          <pre><code >heerich.applyGeometry({
+  type: 'box', position: [0, 0, 0], size: [s, s, s],
+  scale: (x, y, z) => {
+    const t = 1 - y / s
+    const f = 1 - t * taper
+    return [f, 1, f]
+  },
+  scaleOrigin: [0.5, 1, 0.5]
+})</code></pre>
+          <p>
+            Return <code>null</code> from the function to leave a voxel at full
+            size.
+          </p>
+        </div>
+      </div>
+
+      <div class="section-row" id="opaque">
+        <div class="section-demo">
+          <div class="demo" id="demo-opaque">
+            <div class="demo-canvas"></div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Transparent voxels</h2>
+          <p>
+            Set <code>opaque: false</code> and the voxel itself remains visible,
+            but adjacent voxels treat it as empty space — forcing their inner
+            faces to be drawn. Combine this with a transparent fill to construct
+            wireframe cages, bounding volumes, or see-through sculptural guides
+            anchored cleanly over solid geometry.
+          </p>
+          <pre><code >// Wireframe cage over a solid core
+heerich.applyGeometry({
+  type: 'box',
+  position: [1, 1, 1],
+  size: 3
+})
+heerich.applyGeometry({
+  type: 'box', position: [0, 0, 0], size: 5,
+  opaque: false,
+  style: { default: { fill: 'none' } }
+})</code></pre>
+        </div>
+      </div>
+
+      <!-- ─── Content voxels ─────────────────────────────── -->
+
+      <div class="section-row" id="content-voxels">
+        <div class="section-demo">
+          <div class="demo" id="demo-content">
+            <div class="demo-canvas"></div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Content voxels</h2>
+          <p>
+            You can embed pure SVG arbitrarily into volumetric cells by
+            injecting a literal
+            <code>content</code> string. The engine intercepts these strings,
+            seamlessly calculates their projected 2D location alongside other
+            faces, enforces a strict Z-level depth sort, and encases everything
+            cleanly inside an integrated <code>&lt;g&gt;</code> element.
+          </p>
+          <pre><code >heerich.applyGeometry({
+  type: 'box', position: [3, 0, 6], size: 1,
+  opaque: false,
+  content: `&lt;text
+    font-family="Aboreto"
+    font-size="20"
+    text-anchor="middle"
+    dominant-baseline="central"
+  &gt;A&lt;/text&gt;`
+})</code></pre>
+          <p>
+            Ensuring <code>opaque: false</code> explicitly directs neighboring
+            elements to render their intersection faces accurately. Otherwise,
+            neighbors would falsely assume a solid structure is blocking their
+            boundaries.
+          </p>
+          <p>
+            The content is wrapped in a <code>&lt;g&gt;</code> with
+            <code>transform="translate(x, y) scale(s)"</code> and CSS custom
+            properties you can use for sizing:
+          </p>
+          <ul>
+            <li><code>--x</code>, <code>--y</code> — projected 2D position</li>
+            <li><code>--z</code> — original z coordinate</li>
+            <li>
+              <code>--scale</code> — perspective foreshortening (1 in oblique)
+            </li>
+            <li><code>--tile</code> — tile size in pixels</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ─── Queries ─────────────────────────────────── -->
+
+      <div class="section-row" id="queries">
+        <div class="section-demo">
+          <div class="demo" id="demo-queries">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label"
+                >Show
+                <select class="control-select" data-bind="show">
+                  <option value="exposure">exposure (neighbor count)</option>
+                  <option value="edges" selected>edges only</option>
+                  <option value="corners">corners only</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Querying voxels</h2>
+          <p>
+            A robust set of internal methods query localized voxel boundaries.
+            This is fundamental for evaluating complex procedural decorations,
+            handling adjacency logic, or driving edge-aware shading passes.
+          </p>
+          <pre><code >// Color voxels by how exposed they are
+for (const voxel of heerich) {
+  const n = heerich.getNeighbors([voxel.x, voxel.y, voxel.z])
+  const exposed = Object.values(n)
+    .filter(v => !v).length
+  // exposed = number of open faces (0–6)
+}</code></pre>
+          <p>
+            The <code>getNeighbors()</code> query explicitly retrieves adjacent
+            solid geometry across the six cardinal planes. In the interactive
+            demo, individual cubes compute their overall exposure count —
+            completely encased shapes remain flat, while openly protruding forms
+            inherit high-contrast luminance.
+          </p>
+          <pre><code >heerich.hasVoxel([3, 4, 5])   // boolean
+heerich.getVoxel([3, 4, 5])   // voxel data or null
+for (const voxel of heerich) { ... }
+
+// Serialization
+const json = heerich.toJSON()
+const copy = Heerich.fromJSON(json)</code></pre>
+        </div>
+      </div>
+
+      <!-- ─── findVoxels ──────────────────────────────────── -->
+
+      <div class="section-row" id="find-voxels">
+        <div class="section-demo">
+          <div class="demo" id="demo-find-voxels">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <label class="control-label">
+                Highlight
+                <select class="control-select" data-bind="group">
+                  <option value="all">all groups</option>
+                  <option value="base">base</option>
+                  <option value="tower">tower</option>
+                  <option value="pillar">pillars</option>
+                </select>
+              </label>
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Finding voxels</h2>
+          <p>
+            <code>findVoxels(predicate)</code> scans the entire voxel map and
+            returns every voxel for which the predicate returns
+            <code>true</code>. The most common pattern is tagging groups at add
+            time with a <code>meta</code> id, then querying by that id later.
+          </p>
+          <pre><code>h.addGeometry({ type: 'box', position: [0, 4, 0], size: [7, 2, 7],
+  meta: { id: 'base' } })
+h.addGeometry({ type: 'box', position: [2, 1, 2], size: [3, 3, 3],
+  meta: { id: 'tower' } })
+
+// Retrieve a named group
+const tower = h.findVoxels(v => v.meta?.id === 'tower')
+
+// Restyle the result
+for (const voxel of tower) {
+  h.applyStyle({
+    type: 'box', position: [voxel.x, voxel.y, voxel.z], size: 1,
+    style: { default: { fill: '#e05252' } }
+  })
+}</code></pre>
+          <p>
+            Predicates can match on any voxel property — coordinates, style
+            values, or arbitrary <code>meta</code> fields. The returned array
+            contains live references to the stored voxel objects.
+          </p>
+          <pre><code>// Find all voxels at ground level
+h.findVoxels(v => v.y === 0)
+
+// Find within a coordinate range
+h.findVoxels(v =&gt; v.x &gt;= 2 &amp;&amp; v.x &lt;= 5)</code></pre>
+        </div>
+      </div>
+
+      <!-- ─── findByPosition / getVoxelInfo ────────────── -->
+
+      <div class="section-row" id="find-by-position">
+        <div class="section-demo">
+          <div class="demo" id="demo-find-by-pos">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <div class="demo-hit-info">
+                <span class="hit-placeholder">hover over the scene</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Position queries</h2>
+          <p>
+            <code>findByPosition([x, y])</code> performs a 2D screen-space hit
+            test against all projected faces, returning the frontmost voxel and
+            face at that position. Coordinates are in the same pixel space as
+            <code>getFaces()</code> — when working from mouse events on a
+            rendered SVG, use the SVG element's coordinate transform to convert:
+          </p>
+          <pre><code>svgEl.addEventListener('mousemove', e => {
+  const pt = svgEl.createSVGPoint()
+  pt.x = e.clientX; pt.y = e.clientY
+  const { x, y } = pt.matrixTransform(svgEl.getScreenCTM().inverse())
+
+  const hit = h.findByPosition([x, y])
+  if (hit) {
+    console.log(hit.voxel.x, hit.voxel.y, hit.voxel.z)
+    console.log(hit.face.type) // 'top', 'front', 'left', …
+  }
+})</code></pre>
+          <p>
+            <code>getVoxelInfo(posOrVoxel)</code> returns the projected
+            centroid, 2D bounding box, and normalized position for any voxel —
+            given either a coordinate array or a voxel reference directly from
+            <code>findByPosition</code>:
+          </p>
+          <pre><code>const { center2D, bounds2D, normalizedCenter2D } =
+  h.getVoxelInfo(hit.voxel)
+
+// center2D   — { x, y } in pixel space
+// bounds2D   — { x, y, w, h } pixel bounding box of visible faces
+// normalizedCenter2D — { x, y } in 0–1 relative to scene bounds</code></pre>
+        </div>
+      </div>
+
+      <!-- ─── Animation ────────────────────────────────── -->
+
+      <div class="section-row" id="animation">
+        <div class="section-demo">
+          <div class="demo" id="demo-animate">
+            <div class="demo-canvas"></div>
+            <div class="demo-controls">
+              <span class="control-label">
+                <button data-bind="reset">Reset</button>
+                <button data-bind="play">Play</button>
+              </span>
+              <label class="control-label"
+                >Duration
+                <input
+                  type="range"
+                  min="300"
+                  max="3000"
+                  value="1000"
+                  step="100"
+                  data-bind="dur"
+                />
+                <span class="control-value">1000</span>ms</label
+              >
+              <label class="control-label"
+                >Stagger
+                <input
+                  type="range"
+                  min="0"
+                  max="500"
+                  value="150"
+                  step="25"
+                  data-bind="stagger"
+                />
+                <span class="control-value">150</span>ms</label
+              >
+            </div>
+          </div>
+        </div>
+        <div class="section-text">
+          <h2>Animation</h2>
+          <p>
+            The <code>heerich.js</code> architecture strictly separates state
+            from timing — animation is driven entirely externally, hooking
+            directly into your own <code>requestAnimationFrame</code> loop. By
+            interpolating a fractional value and redrawing the active sequence
+            per frame, standard voxel functions progressively toggle discrete
+            coordinates — yielding snappy, pixel-aligned deconstruction.
+          </p>
+          <pre><code >const holes = [
+  { x: 1, y: 1, targetDepth: 5 },
+  { x: 5, y: 2, targetDepth: 4 },
+]
+
+function frame(now) {
+  heerich.clear()
+  heerich.applyGeometry({ type: 'box', ...})
+  holes.forEach((h, i) => {
+    const t = ease(elapsed / duration)
+    heerich.removeGeometry({
+      type: 'box', position: [h.x, h.y, 0],
+      size: [3, 3, Math.round(t * h.targetDepth)]
+    })
+  })
+  container.innerHTML = heerich.toSVG()
+  if (!done) requestAnimationFrame(frame)
+}</code></pre>
+          <p>
+            Applying a stagger offset means each hole strictly starts animating
+            instantly after the previous one, rendering a beautifully cascading
+            reveal.
+          </p>
+        </div>
+      </div>
+
+      <!-- ─── 11. Kitchen sink ──────────────────────────── -->
+
+      <div class="section-full" id="combined">
+        <h2>Putting it all together</h2>
+        <p>
+          A dynamic, procedurally generated composition combining boxes, boolean
+          carving, and functional styles. Recessed voids plunge into a
+          full-width block, revealing depth-shaded walls, while towers steadily
+          rise from within. Fractional voxel scaling smooths the transitions
+          between integer depths, allowing layers to slide smoothly into place
+          rather than abruptly snapping. Click the scene to regenerate.
+        </p>
+      </div>
+
+      <div class="combined-canvas" id="demo-combined">
+        <div class="demo-canvas"></div>
+      </div>
+
+      <!-- ─── 12. Heerich Gallery ───────────────────────── -->
+
+      <div class="section-full">
+        <h2 id="gallery">After Heerich</h2>
+        <p>
+          Exacting recreations of physical cardboard and brass sculptures
+          designed by Erwin Heerich, synthesized entirely in code using this
+          engine.
+        </p>
+      </div>
+
+      <div class="gallery">
+        <div class="demo" id="demo-heerich-cross">
+          <div class="demo-canvas"></div>
+          <p class="gallery-caption">Kreuzplastik (Brass Cross)</p>
+        </div>
+        <div class="demo" id="demo-heerich-checker">
+          <div class="demo-canvas"></div>
+          <p class="gallery-caption">Schachbrett (Checkerboard)</p>
+        </div>
+        <div class="demo" id="demo-heerich-stepped">
+          <div class="demo-canvas"></div>
+          <p class="gallery-caption">Kartonplastik (Stepped Block)</p>
+        </div>
+      </div>
+    </article>
+
+    <footer class="site-footer">
+      <a
+        class="footer-heart"
+        id="footer-heart"
+        href="https://ko-fi.com/colorparrot"
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+      ></a>
+      <div class="footer-text">
+        <h2 id="support">Support</h2>
+        <p>
+          If you find this project useful, please consider
+          <a
+            href="https://ko-fi.com/colorparrot"
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            >buying me a coffee</a
+          >. It keeps the voxel edges crisp and the projection math pointed in
+          the right direction.
+        </p>
+        <a
+          href="https://ko-fi.com/colorparrot"
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+          class="kofi-link"
+          ><img
+            src="https://storage.ko-fi.com/cdn/brandasset/kofi_s_logo_nolabel.png"
+            alt="Ko-fi logo"
+            width="36"
+            height="36"
+        /></a>
+        <p class="credit">
+          Created by <a href="https://elastiq.ch">David Aerne</a> —
+          <a href="https://github.com/meodai/heerich">GitHub</a>
+        </p>
+        <p class="credit">
+          Syntax highlighting by
+          <a href="https://sugar-high.vercel.app/">Sugar High</a>. Typeset in
+          <a href="https://github.com/domija/Aboreto/">Aboreto</a> &amp;
+          <a href="https://weiweihuanghuang.github.io/Work-Sans/">Work Sans</a>.
+        </p>
+      </div>
+    </footer>
+
+    <script type="module" src="./site.js"></script>
+  </body>
+</html>
