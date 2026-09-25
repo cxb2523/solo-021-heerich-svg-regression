@@ -885,6 +885,38 @@ Because the engine outputs standard SVG graphics and relies on Oblique projectio
 
 Valid voxel coordinate bounds range from **-512 to 511** on each axis.
 
+## Testing
+
+Regression tests use the Node.js built-in test runner — zero dependencies:
+
+```bash
+npm test
+```
+
+This runs `node --test tests/regression/regression.test.js`. The suite builds
+scenes and cameras exclusively through the public API (`new Heerich()`,
+`addGeometry()`, `setCamera()`, `getFaces()`, `toSVG()`) and asserts:
+
+- each face's projected quad coordinates and the back-to-front draw order;
+- byte-identical SVG output across repeated renders and fresh engines;
+- visible-face sets when switching between oblique and isometric cameras
+  (including which faces are culled and why);
+- explicit output for the empty scene and a single voxel.
+
+Expected coordinates are derived from the projection formulas (not captured
+from a run) and documented with their derivation in
+`tests/regression/fixtures.js`.
+
+The benchmarks are still available separately:
+
+```bash
+npm run bench     # node tests/benches.js
+```
+
+The docs site has a **Regression check** section (`npm run dev`, then
+`#regression`) with the same frozen scenarios, live face/path counts, frame
+timing and a rendered-vs-expected coordinate table.
+
 ## Acknowledgements
 
 Shape calculations for lines and spheres are based on the excellent guides by Red Blob Games:

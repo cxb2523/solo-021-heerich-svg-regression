@@ -252,6 +252,7 @@
             <li><a href="#find-voxels">Finding voxels</a></li>
             <li><a href="#find-by-position">Position queries</a></li>
             <li><a href="#animation">Animation</a></li>
+            <li><a href="#regression">Regression check</a></li>
             <li><a href="#combined">Putting it all together</a></li>
             <li><a href="#gallery">After Heerich</a></li>
             <li><a href="#support">Credits</a></li>
@@ -1448,6 +1449,92 @@ function frame(now) {
         </div>
       </div>
 
+      <!-- ─── Regression check ──────────────────────────── -->
+
+      <div class="section-full" id="regression">
+        <h2>Regression check</h2>
+        <p>
+          The same frozen scenarios and cameras used by the
+          <code>node:test</code> regression suite (
+          <code>tests/regression/</code>). Switching a preset or a camera
+          rebuilds the scene from scratch and recomputes the face list, path
+          counts and frame time — the panel never reuses stale results. The
+          table lists every drawn face with its projected quad next to the
+          coordinate the geometry predicts, so a bad face is obvious at a
+          glance.
+        </p>
+
+        <div class="regression-panel">
+          <div class="regression-controls">
+            <div class="regression-control-group">
+              <span class="regression-control-title">Scene</span>
+              <div
+                class="regression-toggle"
+                id="reg-scene"
+                role="group"
+                aria-label="Regression scene"
+              >
+                <button type="button" data-scene="empty" class="is-active">
+                  empty
+                </button>
+                <button type="button" data-scene="single">single</button>
+                <button type="button" data-scene="stair">stair</button>
+              </div>
+            </div>
+            <div class="regression-control-group">
+              <span class="regression-control-title">Camera</span>
+              <div
+                class="regression-toggle"
+                id="reg-camera"
+                role="group"
+                aria-label="Regression camera"
+              >
+                <button type="button" data-camera="oblique" class="is-active">
+                  oblique 315°
+                </button>
+                <button type="button" data-camera="iso">iso 45°</button>
+              </div>
+            </div>
+            <div class="regression-stats" id="reg-stats" aria-live="polite">
+              <div class="regression-stat">
+                <span class="regression-stat-value" id="reg-faces">–</span>
+                <span class="regression-stat-label">faces</span>
+              </div>
+              <div class="regression-stat">
+                <span class="regression-stat-value" id="reg-polygons">–</span>
+                <span class="regression-stat-label">polygons</span>
+              </div>
+              <div class="regression-stat">
+                <span class="regression-stat-value" id="reg-paths">–</span>
+                <span class="regression-stat-label">paths</span>
+              </div>
+              <div class="regression-stat">
+                <span class="regression-stat-value" id="reg-time">–</span>
+                <span class="regression-stat-label">ms / frame</span>
+              </div>
+            </div>
+          </div>
+          <div class="regression-body">
+            <div class="regression-canvas" id="reg-canvas"></div>
+            <div class="regression-table-wrap">
+              <table class="regression-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>face</th>
+                    <th>projected points (rendered)</th>
+                    <th>expected (from geometry)</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="reg-rows"></tbody>
+              </table>
+              <p class="regression-note" id="reg-note"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- ─── 11. Kitchen sink ──────────────────────────── -->
 
       <div class="section-full" id="combined">
@@ -1537,6 +1624,7 @@ function frame(now) {
       </div>
     </footer>
 
+    <script type="module" src="./regression.js"></script>
     <script type="module" src="./site.js"></script>
   </body>
 </html>

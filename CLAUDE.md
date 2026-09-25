@@ -15,7 +15,8 @@ Named after Erwin Heerich, the German sculptor known for geometric cardboard scu
 - `npm run build:site` — Build the demo/docs page to `dist-site/`
 - `npm run preview` — Preview the built site
 
-No test framework is configured.
+- `npm test` — Run regression tests (`node --test tests/regression/regression.test.js`, zero dependencies)
+- `npm run bench` — Run benchmarks (`node tests/benches.js`)
 
 ## Architecture
 
